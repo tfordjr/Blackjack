@@ -1,52 +1,74 @@
 #include<stdio.h>
-#include <time.h> //time function
-#include <stdlib.h> //random number generator functions
-#include <string.h>
+#include <time.h>
+#include <stdlib.h>
 #include <stdbool.h>
 
-#define MAX 9
-#define MAX_CARDS 52
-#define MAX_RANKS 13
-#define MAX_SUITS 4
-#define COLS 3 //number of columns to display in output
+int evaluate (char array[], int size){
+    int value = 0;
+    bool aceFlag = 0;
+    for (int i = 0; i < size; i++) {
+        if (array[i]== 'K' || array[i]== 'Q' || array[i]== 'J' || array[i]== 'T' ){     // TEN CASE
+            value += 10;
+        } else if(array[i]== 'A'){          // ACE CASE
+                aceFlag = 1;
+                value++;
+        } else {                // Number Case
+            value += (array[i] - 48);
+        }
+    }
+    if (aceFlag == 1 && value < 12){
+        value += 10;
+    }
 
-struct card{
-    char *rank;
-    char suit[MAX];
-};
-typedef struct card Card;
-
-char *ranks[MAX_RANKS] = {"Ace", "Two", "Three", "Four", "Five", "Six", "Seven",
-                          "Eight", "Nine", "Ten", "Jack", "Queen", "King"};
-char suits[MAX_SUITS][MAX] = {"Clubs", "Diamonds", "Hearts", "Spades"};
-
-void initialize(Card []);
-void shuffle(Card []);
+    return value;
+}
 
 int main(){
-
-    Card deck[MAX_CARDS] = {"",""};
-    initialize(deck);
-    shuffle(deck);
+    char deck[] = "A23456789TJQK";
     printf("Welcome to BlackJack in C\n");
-    bool handOver, gameOver = 0;
+    printf("On your action you may...\n1. Hit    2. Stand    3. Double Down    4. Split\n");
 
-    //while(!gameOver) {
+
+
+    bool handOver = 0;      //variable initialization
+    int handSize = 2, handValue = 0;
+    char dealersHand[10] = "";
+    char yourHand[10] = "";
+
+    srand(time(NULL));
+    int r = rand() % 13;        //hand initialization
+    yourHand[0] = deck[r];
+    r = rand() % 13;
+    yourHand[1] = deck[r];
+    r = rand() % 13;
+    dealersHand[0] = deck[r];
+    handValue = evaluate(yourHand, handSize);
+
+    printf("Dealer's Hand: %s\tYour Hand:%s\t\tHand Value: %d\t",dealersHand, yourHand, handValue);
+
     while (!handOver) {
         int choice;
-        printf("Your action! You may...\n1. Hit    2. Stand    3. Double Down    4. Split\nWhat is your choice? ");
+        printf("...");
         scanf("%d", &choice);
-
 
         switch (choice) {
             case 1:
-                printf("%5s of %-12s\n", deck[0].rank, deck[0].suit);
+                r = rand() % 13;
+                yourHand[handSize] = deck[r];
+                handSize++;
+                handValue = evaluate(yourHand, handSize);
+                printf("Dealer's Hand: %s\tYour Hand:%s\t\tHand Value: %d\t",dealersHand, yourHand, handValue);
+                if(handValue>20)
+                    handOver = 1;
                 break;
             case 2:
                 printf("StAnD dOwN\n");
+                handOver = 1;
                 break;
             case 3:
-                printf("%5s of %-12s DOUBLED!!\n", deck[0].rank, deck[0].suit);
+                r = rand() % 13;
+                printf("Your Hand:%c DOUBLED!!!!", deck[r]);
+
                 break;
             case 4:
                 printf("Splat\n");
@@ -56,33 +78,15 @@ int main(){
                 break;
         }
     }
+
+    if (handValue>21) {
+        printf("BUSTED!");
+    } //else {
+
     //}
 
+
+
+
     return 0;
-}
-
-
-void initialize(Card deck[]){
-    int i = 0;
-    for(i=0; i<MAX_CARDS; i++){
-        deck[i].rank = ranks[i%MAX_RANKS];
-        strncpy(deck[i].suit, suits[i/MAX_RANKS], MAX);
-    }
-}
-
-
-void shuffle(Card deck[]){
-    printf("\nshuffling deck ... \n");
-    int swapper = 0; //index of card to be swapped
-    int i = 0; //counter
-    Card temp = {"", ""}; //temp holding place for swap
-    srand(time(NULL)); //seed the random numbers with current time
-    for(i=0;i<MAX_CARDS;i++){
-        //generate a pseudo-random number from 0 to 51
-        swapper = rand() % MAX_CARDS;
-        //swap current card with da swapper
-        temp = deck[i];
-        deck[i] = deck[swapper];
-        deck[swapper] = temp;
-    }
 }
