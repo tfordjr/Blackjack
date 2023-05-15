@@ -117,7 +117,7 @@ int main(){
 
         if (evaluate(yourHand, yourHandSize) == 21) {   // PLAYER BLACKJACK??
             printf("\nBlackJack!!! Payout is 3/2! You've won %d off your %d wager!", ((3 * wager)/2), wager);
-            chips += (3 * wager)/2;
+            chips += (5 * wager)/2;
             handOver = 1, blackjack = 1;
         }
 
