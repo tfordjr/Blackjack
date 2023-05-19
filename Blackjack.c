@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+void split(char card, char dealersHand[], const char deck[], int *chips, int *wager);
+bool play (char dealersHand[], char yourHand[], int dealersHandSize, int *yourHandSize, const char deck[], int *chips, int *wager);
+
 int evaluate(const char array[], int size){
     int value = 0;
     bool aceFlag = 0;
@@ -43,12 +46,6 @@ void displayHands(char dealersHand[], char yourHand[], int dealersHandSize, int 
            evaluate(dealersHand, dealersHandSize), yourHand, evaluate(yourHand, yourHandSize));
 }
 
-void displaySplitHands(char dealersHand[], char hand1[], char hand2[], int dealersHandSize, int hand1Size, int hand2Size) {
-    printf("\nDealer's Hand: %s  (Value: %d)\t\tHand 1:%s  (Value: %d)\t\tHand 2:%s  (Value: %d)",
-           dealersHand, evaluate(dealersHand, dealersHandSize),
-           hand1, evaluate(hand1, hand1Size), hand2, evaluate(hand2, hand2Size));
-}
-
 void whoWon(char dealersHand[], char yourHand[], int dealersHandSize, int yourHandSize, int* chips, int* wager) {
     int handValue = evaluate(yourHand, yourHandSize);
     int dealersHandValue = evaluate(dealersHand, dealersHandSize);
@@ -67,9 +64,9 @@ void whoWon(char dealersHand[], char yourHand[], int dealersHandSize, int yourHa
     }
 }
 
-bool insurance(const char deck[], char hand[], int *handSize, int *chips, const int *wager, bool *dealerBlackjack){
+bool insurance(const char deck[], char hand[], int *handSize, int *chips, const int *wager){
     int insuranceBet = (*wager/2);
-    printf("\nDealer is showing an Ace! Would you like to purchase insurance for %d?", insuranceBet);
+    printf("\nDealer is showing an Ace! Would you like to purchase insurance for %d chips? Enter 0 for no or 1 for yes", insuranceBet);
     bool insurance = inputValidate(0, 1);
 
     if(insurance)                                                            // insurance Bet deducted from chips
@@ -79,7 +76,6 @@ bool insurance(const char deck[], char hand[], int *handSize, int *chips, const 
     int r = rand() % 13;
     if(r > 8){
         printf("\nDealer has blackjack!");
-        *dealerBlackjack = 1;
         hand[1] = deck[r];
         *handSize += 1;
         if(insurance){
@@ -92,54 +88,28 @@ bool insurance(const char deck[], char hand[], int *handSize, int *chips, const 
     }
 }
 
-void split(char card, char dealersHand[], const char deck[], int *chips, int *wager){
+void split(char card, char dealersHand[], const char deck[], int *chips, int *wager) {
     char hands[2][10];
     hands[0][0] = card;
     hands[1][0] = card;
-    int handSize[] = {1,1}, dealersHandSize = 1;
-    bool handOver, busted[] = {0, 0};
+    int handSize[] = {1, 1}, dealersHandSize = 1;
+    bool handOver = 0, busted[] = {0, 0};
 
     for (int i = 0; i < 2; ++i) {
-        printf("\nHand %d:", i+1);
-        handOver = 0;
-
-        while (!handOver) {            // Hand loops, ends when player's hand is complete or busted
-            int choice = inputValidate(1, 3);
-            switch (choice) {
-                case 1:                     // HIT!
-                    hit(deck, hands[i], &handSize[i]);
-                    displayHands(dealersHand, hands[i], dealersHandSize, handSize[i]);
-                    if (evaluate(hands[i], handSize[i]) > 20)
-                        handOver = 1;
-                    break;
-                case 2:                     // STAND!
-                    printf("StAnD dOwN");
-                    handOver = 1;
-                    break;
-                case 3:                     // DOUBLE DOWN!
-                    hit(deck, hands[i], &handSize[i]);
-                    displayHands(dealersHand, hands[i], dealersHandSize, handSize[i]);
-                    *chips -= *wager;
-                    *wager = *wager * 2;
-                    handOver = 1;
-                    break;
-                default:                     // UNUSED DEFAULT
-                    printf("\nWhoops don't press that");
-                    break;
-            }
-            if (evaluate(hands[i], handSize[i]) > 21) {
-                printf("\tBUSTED HAND %d!!", i+1);
-                busted[i] = 1;
-                handOver = 1;
-            }
-        }
-    }                                                                 // END OF SPLIT HANDS USER PLAY LOOPS!!!
-    while (evaluate(dealersHand, dealersHandSize) < 17) {          // DEALER'S HAND LOOP
-        hit(deck, dealersHand, &dealersHandSize);
-        displaySplitHands(dealersHand, hands[0], hands[1], dealersHandSize, handSize[0], handSize[1]);
+        hit(deck, hands[i], &handSize[i]);
+        printf("\nHand %d:", i + 1);
+        busted[i] = play(dealersHand, hands[i], dealersHandSize, &handSize[i], deck, chips, wager);
     }
-    for (int i = 0; i < 2; ++i) {                        // BOTH HAND RESULTS
+
+                   // DEALER'S HAND LOOP
+    while (evaluate(dealersHand, dealersHandSize) < 17) {
+        hit(deck, dealersHand, &dealersHandSize);
+    }
+
+    for (int i = 0; i < 2; ++i) {                  // DISPLAY DEALERS HAND AND CALCULATE WHO WON FOR EACH HAND
         printf("\nHand %d: ", i+1);
+        displayHands(dealersHand, hands[i], dealersHandSize, handSize[i]);
+        printf("\n");
         if (busted[i]){
             printf("BUSTED!!");
         }else{
@@ -148,6 +118,59 @@ void split(char card, char dealersHand[], const char deck[], int *chips, int *wa
     }
 }
 
+bool play (char dealersHand[], char yourHand[], int dealersHandSize, int *yourHandSize, const char deck[], int *chips, int *wager) {
+
+    bool handOver = 0;
+    int choice;
+
+    while (!handOver) {            // Hand loop, ends when player's hand is complete or busted
+        choice = inputValidate(1, 5);
+        switch (choice) {
+            case 1:                     // HIT!
+                hit(deck, yourHand, yourHandSize);
+                displayHands(dealersHand, yourHand, dealersHandSize, *yourHandSize);
+                if (evaluate(yourHand, *yourHandSize) > 20)
+                    handOver = 1;
+                break;
+            case 2:                     // STAND!
+                printf("StAnD dOwN");
+                handOver = 1;
+                break;
+            case 3:                     // DOUBLE DOWN!
+                printf("DOUBLED! You're in for %d!!!", *wager*2);
+                hit(deck, yourHand, yourHandSize);
+                displayHands(dealersHand, yourHand, dealersHandSize, *yourHandSize);
+                *chips -= *wager;
+                *wager *= 2;
+                handOver = 1;
+                break;
+            case 4:                     // SPLIT!
+                if(yourHand[0] == yourHand[1]){
+                    printf("\nSplat");
+                    split(yourHand[0], dealersHand, deck, chips, wager);
+                    *chips -= *wager;
+                    return 1;             // RETURN BUSTED IF SPLIT SO WE SKIP DEALER'S TURN FOR SPLIT HANDS AND HANDLE THAT IN SPLIT FUNCTION
+                } else {
+                    printf("\nCannot split cards");
+                }
+                break;
+            case 5:                     // QUIT!
+                printf("\nThanks for playing!");
+                exit(0);
+            default:                     // UNUSED DEFAULT
+                printf("\nWhoops don't press that");
+                handOver = 1;
+        }
+
+        if (evaluate(yourHand, *yourHandSize) > 20) {
+            if (evaluate(yourHand, *yourHandSize) > 21) {
+                printf("\tBUSTED!!");
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
 
 int main(){
     const char deck[] = "A23456789TJQK";                // deck initialization
@@ -159,8 +182,8 @@ int main(){
 
     while(!gameOver) {           // Main game loop
 
-        bool handOver = 0, busted = 0, dealerBlackjack = 0, blackjack = 0, splitted = 0;      //variable initialization
-        int yourHandSize = 0, dealersHandSize = 0, wager, choice;
+        bool dealerBlackjack = 0, blackjack = 0, busted = 0;      //variable initialization
+        int yourHandSize = 0, dealersHandSize = 0, wager;
         char yourHand[10] = "", dealersHand[10] = "";
 
         hit(deck, yourHand, &yourHandSize);           // Initialize hands
@@ -175,70 +198,30 @@ int main(){
         if (evaluate(yourHand, yourHandSize) == 21) {   // PLAYER BLACKJACK??
             printf("\nBlackJack!!! Payout is 3/2! You've won %d off your %d wager!", ((3 * wager)/2), wager);
             chips += (5 * wager)/2;
-            handOver = 1, blackjack = 1;
+            blackjack = 1;
         }
 
         if (dealersHand[0] == 'A' && !blackjack) {          // INSURANCE???
-            handOver = insurance(deck, dealersHand, &dealersHandSize, &chips, &wager, &dealerBlackjack);
+            dealerBlackjack = insurance(deck, dealersHand, &dealersHandSize, &chips, &wager);
             displayHands(dealersHand, yourHand, dealersHandSize, yourHandSize);
         }
 
-        while (!handOver) {            // Hand loop, ends when player's hand is complete or busted
-            choice = inputValidate(1, 5);
-            switch (choice) {
-                case 1:                     // HIT!
-                    hit(deck, yourHand, &yourHandSize);
+                                                        // MAIN PLAY LOOP
+        if (!dealerBlackjack && !blackjack) {         // If either player has blackjack, skip play loop and dealer hand loop
+            busted = play(dealersHand, yourHand, dealersHandSize, &yourHandSize, deck, &chips, &wager);
+
+            if(!busted) {                       // DEALER'S HAND LOOP
+                while (evaluate(dealersHand, dealersHandSize) < 17) {
+                    hit(deck, dealersHand, &dealersHandSize);
                     displayHands(dealersHand, yourHand, dealersHandSize, yourHandSize);
-                    if (evaluate(yourHand, yourHandSize) > 20)
-                        handOver = 1;
-                    break;
-                case 2:                     // STAND!
-                    printf("StAnD dOwN");
-                    handOver = 1;
-                    break;
-                case 3:                     // DOUBLE DOWN!
-                    printf("DOUBLED! You're in for %d!!!", wager*2);
-                    hit(deck, yourHand, &yourHandSize);
-                    displayHands(dealersHand, yourHand, dealersHandSize, yourHandSize);
-                    chips -= wager;
-                    wager *= 2;
-                    handOver = 1;
-                    break;
-                case 4:                     // SPLIT!
-                    if(yourHand[0] == yourHand[1]){
-                        printf("\nSplat");
-                        splitted = 1;
-                        split(yourHand[0], dealersHand, deck, &chips, &wager);
-                        handOver = 1;
-                        chips -= wager;
-                    } else {
-                        printf("\nCannot split cards");
-                    }
-                    break;
-                case 5:                     // QUIT!
-                    printf("\nThanks for playing!");
-                    handOver = 1, gameOver = 1;
-                    break;
-                default:                     // UNUSED DEFAULT
-                    printf("\nWhoops don't press that");
-                    break;
-            }
-            if (evaluate(yourHand, yourHandSize) > 21) {
-                printf("\tBUSTED!!");
-                handOver = 1, busted = 1;
+                }
+                printf("\n");
+                whoWon(dealersHand, yourHand, dealersHandSize, yourHandSize, &chips, &wager);
             }
         }
 
-        if(!busted && !dealerBlackjack && !blackjack && !splitted) {                            // DEALER'S HAND LOOP
-            while (evaluate(dealersHand, dealersHandSize) < 17) {
-                hit(deck, dealersHand, &dealersHandSize);
-                displayHands(dealersHand, yourHand, dealersHandSize, yourHandSize);
-            }
-            printf("\n");
-            whoWon(dealersHand, yourHand, dealersHandSize, yourHandSize, &chips, &wager);
-        }
 
-        if (chips <= 1){
+        if (chips <= 1){                                        // OUT OF CHIPS?
             printf("\nYou now have %d chips", chips);
             printf("\nYou lost all your chips!\nBetter luck next time!");
             gameOver = 1;
