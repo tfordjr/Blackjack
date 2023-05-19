@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <time.h>
 #include <stdlib.h>
 #include <stdbool.h>
 
@@ -16,9 +15,9 @@ int evaluate(const char array[], int size){
             value += (array[i] - 48);
         }
     }
-    if (aceFlag == 1 && value < 12){
+    if (aceFlag == 1 && value < 12)
         value += 10;
-    }
+
     return value;
 }
 
@@ -97,9 +96,7 @@ void split(char card, char dealersHand[], const char deck[], int *chips, int *wa
     char hands[2][10];
     hands[0][0] = card;
     hands[1][0] = card;
-    int handSize[] = {1,1};
-    int dealersHandSize = 1;
-
+    int handSize[] = {1,1}, dealersHandSize = 1;
     bool handOver, busted[] = {0, 0};
 
     for (int i = 0; i < 2; ++i) {
@@ -136,7 +133,7 @@ void split(char card, char dealersHand[], const char deck[], int *chips, int *wa
                 handOver = 1;
             }
         }
-    }                                                                 // END OF SPLIT HANDS HAND LOOPS!!!
+    }                                                                 // END OF SPLIT HANDS USER PLAY LOOPS!!!
     while (evaluate(dealersHand, dealersHandSize) < 17) {          // DEALER'S HAND LOOP
         hit(deck, dealersHand, &dealersHandSize);
         displaySplitHands(dealersHand, hands[0], hands[1], dealersHandSize, handSize[0], handSize[1]);
@@ -151,29 +148,26 @@ void split(char card, char dealersHand[], const char deck[], int *chips, int *wa
     }
 }
 
+
 int main(){
     const char deck[] = "A23456789TJQK";                // deck initialization
     printf("\nWelcome to BlackJack in C");
     printf("\nOn your action you may:\n1. Hit    2. Stand    3. Double Down    4. Split    5. Quit");
 
     bool gameOver = 0;
-    int chips = 1000;
+    int chips = 100;
 
     while(!gameOver) {           // Main game loop
 
         bool handOver = 0, busted = 0, dealerBlackjack = 0, blackjack = 0, splitted = 0;      //variable initialization
-        int yourHandSize = 2, dealersHandSize = 1, wager, choice;
+        int yourHandSize = 0, dealersHandSize = 0, wager, choice;
         char yourHand[10] = "", dealersHand[10] = "";
 
-        srand(time(NULL));
-        int r = rand() % 13;            //hand initialization
-        yourHand[0] = deck[r];
-        r = rand() % 13;
-        yourHand[1] = deck[r];
-        r = rand() % 13;
-        dealersHand[0] = deck[r];
+        hit(deck, yourHand, &yourHandSize);           // Initialize hands
+        hit(deck, yourHand, &yourHandSize);
+        hit(deck, dealersHand, &dealersHandSize);
 
-        printf("\n\tYou now have %d chips...\nNew Hand!!\tWhat is your wager? ", chips);
+        printf("\n\tYou now have %d chips...\nNew Hand!!\tWhat is your wager? ", chips);   // What's your wager?
         wager = inputValidate(2, chips);
         chips -= wager;
         displayHands(dealersHand, yourHand, dealersHandSize, yourHandSize);
