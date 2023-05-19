@@ -89,14 +89,15 @@ bool insurance(const char deck[], char hand[], int *handSize, int *chips, const 
 }
 
 void split(char card, char dealersHand[], const char deck[], int *chips, int *wager) {
-    char hands[2][10];
+    char hands[2][10] = {"", ""};
     hands[0][0] = card;
     hands[1][0] = card;
     int handSize[] = {1, 1}, dealersHandSize = 1;
-    bool handOver = 0, busted[] = {0, 0};
+    bool busted[] = {0, 0};
 
     for (int i = 0; i < 2; ++i) {
         hit(deck, hands[i], &handSize[i]);
+        displayHands(dealersHand, hands[i], dealersHandSize, handSize[i]);
         printf("\nHand %d:", i + 1);
         busted[i] = play(dealersHand, hands[i], dealersHandSize, &handSize[i], deck, chips, wager);
     }
@@ -146,7 +147,7 @@ bool play (char dealersHand[], char yourHand[], int dealersHandSize, int *yourHa
                 break;
             case 4:                     // SPLIT!
                 if(yourHand[0] == yourHand[1]){
-                    printf("\nSplat");
+                    printf("\nSplit! You're in for %d on each hand!", *wager);
                     split(yourHand[0], dealersHand, deck, chips, wager);
                     *chips -= *wager;
                     return 1;             // RETURN BUSTED IF SPLIT SO WE SKIP DEALER'S TURN FOR SPLIT HANDS AND HANDLE THAT IN SPLIT FUNCTION
