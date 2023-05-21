@@ -1,6 +1,9 @@
 #include <stdio.h>
+#include <time.h>
 #include <stdlib.h>
 #include <stdbool.h>
+//#include "...\cards.c"
+
 
 void split(char card, char dealersHand[], const char deck[], int *chips, int *wager);
 bool play (char dealersHand[], char yourHand[], int dealersHandSize, int *yourHandSize, const char deck[], int *chips, int *wager);
@@ -175,6 +178,7 @@ bool play (char dealersHand[], char yourHand[], int dealersHandSize, int *yourHa
 
 int main(){
     const char deck[] = "A23456789TJQK";                // deck initialization
+    srand(time(NULL));
     printf("\nWelcome to BlackJack in C");
     printf("\nOn your action you may:\n1. Hit    2. Stand    3. Double Down    4. Split    5. Quit");
 
@@ -183,7 +187,7 @@ int main(){
 
     while(!gameOver) {           // Main game loop
 
-        bool dealerBlackjack = 0, blackjack = 0, busted = 0;      //variable initialization
+        bool dealerBlackjack = 0, blackjack = 0, busted;      //variable initialization
         int yourHandSize = 0, dealersHandSize = 0, wager;
         char yourHand[10] = "", dealersHand[10] = "";
 
