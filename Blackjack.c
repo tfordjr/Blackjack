@@ -2,6 +2,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <unistd.h>
 //#include "...\cards.c"
 
 
@@ -20,8 +21,7 @@ int evaluate(const char array[], int size){
         } else {                // Number Case
             value += (array[i] - 48);
         }
-    }
-    if (aceFlag == 1 && value < 12)
+    } if (aceFlag == 1 && value < 12)
         value += 10;
 
     return value;
@@ -114,6 +114,7 @@ void split(char card, char dealersHand[], const char deck[], int *chips, int *wa
 
     for (int i = 0; i < 2; ++i) {                  // DISPLAY DEALERS HAND AND CALCULATE WHO WON FOR EACH HAND
         printf("\nHand %d: ", i+1);
+        sleep(1);
         displayHands(dealersHand, hands[i], dealersHandSize, handSize[i]);
         printf("\n");
         if (busted[i]){
@@ -143,15 +144,19 @@ bool play (char dealersHand[], char yourHand[], int dealersHandSize, int *yourHa
                 handOver = 1;
                 break;
             case 3:                     // DOUBLE DOWN!
-                printf("\nDOUBLED! You're in for %d!!!", *wager*2);
-                hit(deck, yourHand, yourHandSize);
-                displayHands(dealersHand, yourHand, dealersHandSize, *yourHandSize);
-                *chips -= *wager;
-                *wager *= 2;
-                handOver = 1;
+                if (*chips >= *wager) {
+                    printf("\nDOUBLED! You're in for %d!!!", *wager*2);
+                    hit(deck, yourHand, yourHandSize);
+                    displayHands(dealersHand, yourHand, dealersHandSize, *yourHandSize);
+                    *chips -= *wager;
+                    *wager *= 2;
+                    handOver = 1;
+                } else {
+                    printf("\nYou don't have enough chips to double down.");
+                }
                 break;
             case 4:                     // SPLIT!
-                if(yourHand[0] == yourHand[1]){
+                if(yourHand[0] == yourHand[1] && *chips >= *wager){
                     printf("\nSplit! You're in for %d on each hand!", *wager);
                     split(yourHand[0], dealersHand, deck, chips, wager);
                     *chips -= *wager;
@@ -172,6 +177,8 @@ bool play (char dealersHand[], char yourHand[], int dealersHandSize, int *yourHa
             if (evaluate(yourHand, *yourHandSize) > 21) {
                 printf("\tBUSTED!!");
                 return 1;
+            } else {
+                printf("\t21!!!");
             }
         }
     }
@@ -223,6 +230,7 @@ int main(){
                     displayHands(dealersHand, yourHand, dealersHandSize, yourHandSize);
                 }
                 while (evaluate(dealersHand, dealersHandSize) < 17) {        // Hit until 17
+                    sleep(1);
                     hit(deck, dealersHand, &dealersHandSize);
                     displayHands(dealersHand, yourHand, dealersHandSize, yourHandSize);
                 }
