@@ -7,7 +7,7 @@
 
 
 void split(char card, char dealersHand[], const char deck[], int *chips, int *wager);
-bool play (char dealersHand[], char yourHand[], int dealersHandSize, int *yourHandSize, const char deck[], int *chips, int *wager);
+bool play (char dealersHand[], char yourHand[], int dealersHandSize, int *yourHandSize, const char deck[], int *chips, int *wager, bool alreadySplit);
 
 int evaluate(const char array[], int size){
     int value = 0;
@@ -49,7 +49,7 @@ void displayHands(char dealersHand[], char yourHand[], int dealersHandSize, int 
            evaluate(dealersHand, dealersHandSize), yourHand, evaluate(yourHand, yourHandSize));
 }
 
-void whoWon(char dealersHand[], char yourHand[], int dealersHandSize, int yourHandSize, int* chips, int* wager) {
+void whoWon(char dealersHand[], char yourHand[], int dealersHandSize, int yourHandSize, int* chips, const int* wager) {
     int handValue = evaluate(yourHand, yourHandSize);
     int dealersHandValue = evaluate(dealersHand, dealersHandSize);
 
@@ -104,7 +104,7 @@ void split(char card, char dealersHand[], const char deck[], int *chips, int *wa
         printf("\nHand %d:", i + 1);
         hit(deck, hands[i], &handSize[i]);
         displayHands(dealersHand, hands[i], dealersHandSize, handSize[i]);
-        busted[i] = play(dealersHand, hands[i], dealersHandSize, &handSize[i], deck, chips, wager);
+        busted[i] = play(dealersHand, hands[i], dealersHandSize, &handSize[i], deck, chips, wager, 1);
     }
 
                    // DEALER'S HAND LOOP
@@ -125,7 +125,7 @@ void split(char card, char dealersHand[], const char deck[], int *chips, int *wa
     }
 }
 
-bool play (char dealersHand[], char yourHand[], int dealersHandSize, int *yourHandSize, const char deck[], int *chips, int *wager) {
+bool play (char dealersHand[], char yourHand[], int dealersHandSize, int *yourHandSize, const char deck[], int *chips, int *wager, bool alreadySplit) {
 
     bool handOver = 0;
     int choice;
@@ -156,7 +156,7 @@ bool play (char dealersHand[], char yourHand[], int dealersHandSize, int *yourHa
                 }
                 break;
             case 4:                     // SPLIT!
-                if(yourHand[0] == yourHand[1] && *chips >= *wager){
+                if(yourHand[0] == yourHand[1] && *chips >= *wager && alreadySplit == 0){
                     printf("\nSplit! You're in for %d on each hand!", *wager);
                     split(yourHand[0], dealersHand, deck, chips, wager);
                     *chips -= *wager;
@@ -221,7 +221,7 @@ int main(){
 
                                                         // MAIN PLAY LOOP
         if (!dealerBlackjack && !blackjack) {         // If either player has blackjack, skip play loop and dealer hand loop
-            busted = play(dealersHand, yourHand, dealersHandSize, &yourHandSize, deck, &chips, &wager);
+            busted = play(dealersHand, yourHand, dealersHandSize, &yourHandSize, deck, &chips, &wager, 0);
 
             if(!busted) {                       // DEALER'S HAND LOOP
                 if(dealerCard != 'L'){
@@ -234,7 +234,7 @@ int main(){
                     hit(deck, dealersHand, &dealersHandSize);
                     displayHands(dealersHand, yourHand, dealersHandSize, yourHandSize);
                 }
-                printf("\n");
+                printf("\t");
                 whoWon(dealersHand, yourHand, dealersHandSize, yourHandSize, &chips, &wager);    // Who won?
             }
         }
