@@ -5,7 +5,6 @@
 #include <unistd.h>
 //#include "...\cards.c"
 
-
 void split(char card, char dealersHand[], const char deck[], int *chips, int *wager);
 bool play (char dealersHand[], char yourHand[], int dealersHandSize, int *yourHandSize, const char deck[], int *chips, int *wager, bool alreadySplit);
 
@@ -45,7 +44,7 @@ void hit(const char deck[], char hand[], int* handSize) {
 }
 
 void displayHands(char dealersHand[], char yourHand[], int dealersHandSize, int yourHandSize) {
-    printf("\nDealer's Hand: %s  (Value: %d)\t\tYour Hand:%s  (Value: %d)", dealersHand,
+    printf("Dealer's Hand: %s  (Value: %d)\t\tYour Hand:%s  (Value: %d)", dealersHand,
            evaluate(dealersHand, dealersHandSize), yourHand, evaluate(yourHand, yourHandSize));
 }
 
@@ -59,7 +58,7 @@ void whoWon(char dealersHand[], char yourHand[], int dealersHandSize, int yourHa
     } else if (dealersHandValue > handValue) {
         printf("The house always wins...");
     } else if (dealersHandValue < handValue) {
-        printf("You win!!");
+        printf("You won!!");
         *chips += 2 * *wager;
     } else if (dealersHandValue == handValue) {
         printf("Push!!");
@@ -87,7 +86,7 @@ bool insurance(const char deck[], char hand[], int *handSize, int *chips, const 
         }
         return 1;
     } else {
-        printf("\nDealer does not have blackjack! Play continues...");
+        printf("\nDealer does not have blackjack! Play continues...\n");
         *card = deck[r];
         return 0;
     }
@@ -101,7 +100,7 @@ void split(char card, char dealersHand[], const char deck[], int *chips, int *wa
     bool busted[] = {0, 0};
 
     for (int i = 0; i < 2; ++i) {
-        printf("\nHand %d:", i + 1);
+        printf("\nHand %d:\n", i + 1);
         hit(deck, hands[i], &handSize[i]);
         displayHands(dealersHand, hands[i], dealersHandSize, handSize[i]);
         busted[i] = play(dealersHand, hands[i], dealersHandSize, &handSize[i], deck, chips, wager, 1);
@@ -113,7 +112,7 @@ void split(char card, char dealersHand[], const char deck[], int *chips, int *wa
     }
 
     for (int i = 0; i < 2; ++i) {                  // DISPLAY DEALERS HAND AND CALCULATE WHO WON FOR EACH HAND
-        printf("\nHand %d: ", i+1);
+        printf("\nHand %d: \n", i+1);
         sleep(1);
         displayHands(dealersHand, hands[i], dealersHandSize, handSize[i]);
         printf("\n");
@@ -140,29 +139,29 @@ bool play (char dealersHand[], char yourHand[], int dealersHandSize, int *yourHa
                     handOver = 1;
                 break;
             case 2:                     // STAND!
-                printf("\nStAnD dOwN");
+                printf("StAnD dOwN");
                 handOver = 1;
                 break;
             case 3:                     // DOUBLE DOWN!
-                if (*chips >= *wager) {
-                    printf("\nDOUBLED! You're in for %d!!!", *wager*2);
+                if (*chips >= *wager && *yourHandSize == 2) {
+                    printf("\tDOUBLED! You're in for %d!!!\n", *wager*2);
                     hit(deck, yourHand, yourHandSize);
                     displayHands(dealersHand, yourHand, dealersHandSize, *yourHandSize);
                     *chips -= *wager;
                     *wager *= 2;
                     handOver = 1;
                 } else {
-                    printf("\nYou don't have enough chips to double down.");
+                    printf("You cannot double down");
                 }
                 break;
             case 4:                     // SPLIT!
                 if(yourHand[0] == yourHand[1] && *chips >= *wager && alreadySplit == 0){
-                    printf("\nSplit! You're in for %d on each hand!", *wager);
+                    printf("\tSplit! You're in for %d on each hand!", *wager);
                     split(yourHand[0], dealersHand, deck, chips, wager);
                     *chips -= *wager;
                     return 1;             // RETURN BUSTED IF SPLIT SO WE SKIP DEALER'S TURN FOR SPLIT HANDS AND HANDLE THAT IN SPLIT FUNCTION
                 } else {
-                    printf("\nCannot split cards");
+                    printf("Cannot split cards");
                 }
                 break;
             case 5:                     // QUIT!
@@ -175,7 +174,7 @@ bool play (char dealersHand[], char yourHand[], int dealersHandSize, int *yourHa
 
         if (evaluate(yourHand, *yourHandSize) > 20) {
             if (evaluate(yourHand, *yourHandSize) > 21) {
-                printf("\tBUSTED!!");
+                printf("\n\tBUSTED!!");
                 return 1;
             } else {
                 printf("\t21!!!");
@@ -227,18 +226,19 @@ int main(){
                 if(dealerCard != 'L'){
                     dealersHand[dealersHandSize] = dealerCard;           // Tends to dealer's 'hidden card'
                     dealersHandSize += 1;
+                    printf("\n");
                     displayHands(dealersHand, yourHand, dealersHandSize, yourHandSize);
                 }
                 while (evaluate(dealersHand, dealersHandSize) < 17) {        // Hit until 17
                     sleep(1);
                     hit(deck, dealersHand, &dealersHandSize);
+                    printf("\n");
                     displayHands(dealersHand, yourHand, dealersHandSize, yourHandSize);
                 }
-                printf("\t");
+                printf("\n\t");
                 whoWon(dealersHand, yourHand, dealersHandSize, yourHandSize, &chips, &wager);    // Who won?
             }
         }
-
 
         if (chips <= 1){                                        // OUT OF CHIPS?
             printf("\nYou now have %d chips", chips);
